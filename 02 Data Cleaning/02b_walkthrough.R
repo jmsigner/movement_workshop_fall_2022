@@ -21,7 +21,7 @@ library(amt)
 
 start <- c("x" = 446589, "y" = 4625899)
 
-# We'll simulate until we have 250 locations.
+# We'll simulate until we have 500 locations.
 n_loc <- 500
 
 # Initialize matrix of locations
@@ -420,10 +420,15 @@ lines(trk)
 # errors here already. But note that they really aren't that obvious most
 # of the time!
 
+# We can also take a look on a map.
+trk %>% 
+  inspect()
+
 # Now we start the cleaning process.
 
 # ... 1. pre-deployment ----
-# Recall we deployed our tag on 17 June at 11:00 and picked it up on 18 July at 08:00.
+# Recall we deployed our tag on 17 June at 11:00 and picked it up on 
+# 18 July at 08:00.
 trk2 <- trk %>% 
   tracked_from_to(from = as.POSIXct("2021-06-17 11:00"),
                   to = as.POSIXct("2021-07-18 08:00"))

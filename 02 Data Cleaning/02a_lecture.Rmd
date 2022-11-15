@@ -403,7 +403,7 @@ trk %>%
 
 ### 8. Flag mortality/drop-off clusters
 
-If an animal with an active cluster dies OR an active collar drops off the animal, we often don't know exactly when the last valid location was.
+If an animal with an active collar dies OR an active collar drops off the animal, we often don't know exactly when the last valid location was.
 
 ![Animal mortality](figs/mort.png)
 
@@ -441,6 +441,7 @@ class: center, middle
 - Error distributions are well studied for each location class (bivariate t-distributions).
 
 - Often modeled with an SSM (*e.g.*, Jonsen et al. 2005).
+  - Implemented in R package `bsam` (https://github.com/ianjonsen/bsam).
 
 ---
 

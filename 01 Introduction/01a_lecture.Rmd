@@ -164,7 +164,7 @@ for (i in 1:10) {
 
 # Recommended setup
 
-- We would recommend to download the whole repository from GitHub (https://github.com/jmsigner/movement_workshop_public)^[If you are familiar with git, feel free to clone the repository]. 
+- We would recommend to download the whole repository from GitHub (https://github.com/jmsigner/movement_workshop_fall_2022)^[If you are familiar with git, feel free to clone the repository]. 
 
 - Then use the RStudio project (together with RStudio).
 - Following these guides, you should have all paths correct. 
@@ -182,7 +182,7 @@ for (i in 1:10) {
 
 - The CRS defines the reference system that is being used to explicitly reference a feature in space. 
 - There are two classes of CRS: **geographic** (e.g., WGS84) and **projected** (e.g., UTM) CRS. 
-- Project CRS flatten the three dimensional data to the a two-dimensional plane (and introduce some distortion). \pause
+- Projected CRS flatten the three dimensional data to the a two-dimensional plane (and introduce some distortion). \pause
 - CRS are often referred to with their EPSG^[EPSG stands for European Petrol Survey Group, who came up with the system.] code.
 - EPSG codes are four to five digits number that refer to different CRS. See for example www.epsg.io. \pause
 - Which CRS is best to use? It depends on the range of the study species. I usually prefer projected CRS, because their units are meters and not degrees. 
@@ -205,7 +205,7 @@ for (i in 1:10) {
 
 ## Environmental covariates 
 - Vector layers (e.g., road networks, rivers, protected areas)
-- Raster layers (e.g., land use, remotely sensed data such as NDVI, climatic variables. )
+- Raster layers (e.g., land use, remotely sensed data such as NDVI, climatic variables)
 
 <img>
 

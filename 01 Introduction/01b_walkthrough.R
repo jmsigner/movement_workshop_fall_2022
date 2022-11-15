@@ -210,5 +210,10 @@ leroy2 %>% steps_by_burst()
 # - `t1_` and `t2_`: the start and end time of a step.
 # - `dt_`: te duration of a step.
 
+# Time of day ----
+
+leroy2 %>% time_of_day() %>% count(tod_)
+
+leroy2 %>% steps_by_burst() %>% time_of_day(where = "both")
 
 
