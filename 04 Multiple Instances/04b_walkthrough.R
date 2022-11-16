@@ -22,7 +22,7 @@ library(lubridate) # to deal with date and time
 
 data("amt_fisher")
 dat <- amt_fisher
-head(amt_fisher)
+head(dat)
 
 # We have four individuals
 unique(dat$name)
@@ -30,12 +30,18 @@ unique(dat$name)
 # ... Obtain additional variables ---- In order to calculate the daily
 # home-range size, we need an other covariate (the day when a relocation was
 # observed). We can use the function `floor_date(unit = "day")` from the
-# `lubridate` package. This will floor (i.e. the timestamp is rounded down to
+# `lubridate` package. This will floor (i.e. the times tamp is rounded down to
 # the day).
 
 # Here is an example
 floor_date(ymd_hms("2022-01-20 05:12:10"), unit = "day")
 floor_date(ymd_hms("2022-01-20 20:12:10"), unit = "day")
+
+round_date(ymd_hms("2022-01-20 05:12:10"), unit = "day")
+round_date(ymd_hms("2022-01-20 20:12:10"), unit = "day")
+
+ceiling_date(ymd_hms("2022-01-20 05:12:10"), unit = "day")
+ceiling_date(ymd_hms("2022-01-20 20:12:10"), unit = "day")
 
 # Note, the argument `unit` could also be set to "hour", "week" and other
 # commonly used units. 
@@ -94,9 +100,10 @@ res$area[1] <- filter(dat, day == res$day[1], name == res$name[1]) %>%
 # We now have to repeat this for every instance
 res$area[1] <- filter(dat, day == res$day[1], name == res$name[1]) %>% 
   hr_mcp() %>% hr_area() %>% pull(area)
-res$area[1] <- filter(dat, day == res$day[1], name == res$name[1]) %>% 
+res$area[2] <- filter(dat, day == res$day[2], name == res$name[2]) %>% 
   hr_mcp() %>% hr_area() %>% pull(area)
 
+res
 # And so on ...
 
 # ... Loops approach ----
@@ -134,7 +141,7 @@ for (i in 1:nrow(res)) {
   res$area[i] <- filter(dat, day == res$day[i], name == res$name[i]) %>% 
     hr_mcp() %>% hr_area() %>% pull(area)
 }
-res
+res %>% print(n = Inf)
 
 # ... Nesting approach ---- 
 # A third approach is to use list columns. This slightly more challenging, but a
@@ -144,6 +151,7 @@ res
 # variables (this is equivalent to the `filter` part in the for loop).
 
 # With the tidyverse, we can use the function `nest()` from the `purrr` package. 
+dat1 <- nest(dat, my.fisher.data = -name)
 dat1 <- nest(dat, data = -name)
 dat1
 
@@ -202,11 +210,13 @@ dat1
 map(dat1$hr.mcp[1:5], ~ hr_area(.x)$area) # This is a list
 
 # We don't want this.
-map_dbl(dat1$hr.mcp[1:5], ~ hr_area(.x)$area) # This is a list
+map_dbl(dat1$hr.mcp[1:5], ~ hr_area(.x)$area) # This is a vector
 
 # And we calculate the area for all animals
 dat1 <- dat1 %>% mutate(area.mcp = map_dbl(hr.mcp, ~ hr_area(.x)$area))
 dat1
+
+dat1 %>% select(-data, -hr.mcp)
 
 # Do the number of relocations matter? ----
 # We could now ask, if the number of relocations influence the home-range size?
@@ -270,7 +280,8 @@ dat2 %>% filter(n >= 10) %>%
 
 # So we can conclude that sample size matters!
 
-# Does estimator change matter?   ---- Lastly, we can check how the estimated
+# Does estimator choice matter?   ---- 
+# Lastly, we can check how the estimated
 # daily space use differs between two different estimators.
 dat2 <- dat %>% nest(data = -c(name, day)) %>% 
   mutate(
@@ -285,6 +296,8 @@ dat2 <- dat %>% nest(data = -c(name, day)) %>%
     hr.kde = map(data, hr_kde)
   )
 
+dat2
+
 # Since all estimators implemented in `amt` have an area method implemented, we
 # can simplify the workflow by changing from the wide format to the long format.
 dat3 <- dat2 %>% 
@@ -292,7 +305,17 @@ dat3 <- dat2 %>%
   # Now it is easy to extract the home-range size
   mutate(hrs = map_dbl(hr, ~ hr_area(.x)$area))
 
+dat3
+
 # Again we can inspect the result visually
 dat3 %>% ggplot(aes(name, hrs, fill = estimator)) + geom_boxplot() +
   scale_y_continuous(trans = "log10") +
   theme_light()
+
+# Overlap between MCP and KDE ----
+
+dat2 <- dat2[1:10, ] %>% mutate(overlap = map2(hr.mcp, hr.kde, ~ hr_overlap(.x, .y)))
+
+dat2 <- dat2[1:10, ] %>% mutate(overlap = map2(hr.mcp, hr.kde, ~ hr_overlap(..1, ..2)))
+
+dat2 <- dat2[1:10, ] %>% mutate(overlap = pmap(list(hr.mcp, hr.kde), ~ hr_overlap(..1, ..2)))

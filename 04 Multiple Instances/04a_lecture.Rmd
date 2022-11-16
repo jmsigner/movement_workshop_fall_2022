@@ -17,7 +17,7 @@ toc: false
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-knitr::opts_knit$set(root.dir = here::here("04 Multiple instances"))
+knitr::opts_knit$set(root.dir = here::here("04 Multiple Instances"))
 knitr::opts_chunk$set(
   echo = TRUE, warning = FALSE, message = FALSE, 
   fig.height = 3, dev = "png", cache = FALSE, out.width = "85%", res = 600,
@@ -45,7 +45,7 @@ theme_set(theme_light())
 
 Three possible ways to deal with multiple instances in R: 
 
-1. Copy and paste your code and make slight adaptations (**don't do this**).
+1. Copy and paste your code and make slight adaptions (**don't do this**).
 2. Use a `for`-loop
 3. Use functional programming
 
@@ -174,7 +174,7 @@ for (i in c("Leroy", "Ricky T", "Lupe", "Lucile")) {
 
 # A slightly deeper look at R
 
-- `tibbles` are *modern* data frames. 
+- `tibbles` are *modern* `data.frame`s. 
 - A tibble can have list columns.
 - A list is an other data structure in R, that can hold any other data structure. 
 
@@ -217,16 +217,16 @@ These functions apply a function on a `matrix`, `vector` or `list`.
 
 For matrices:
 
-- `apply` (we wont cover this here in more detail)
+- `apply()` (we wont cover this here in more detail)
 
 For vectors and lists
 
-- `lapply`
-- `sapply`
+- `lapply()`
+- `sapply()`
 
 ----
 
-## `lapply`
+## `lapply()`
 
 To apply a function to each element of a list (or a vector) and the result should be a list, then `lapply` can be used.
 
@@ -242,7 +242,7 @@ We could achieve the same with a a `for`-loop:
 ```{r}
 res <- list()
 for (i in 1:2) {
-  l[[i]] <- length(l[[i]])
+  res[[i]] <- length(l[[i]])
 }
 
 ```
@@ -271,14 +271,14 @@ Since `length` only uses one argument (here `x`), we do not have to explicitly c
 
 The `purrr` package provides a more type-stable way to `*apply()` functions. These are called `map_*()`.
 
-- `lapply` -> `map`
-- `sapply` -> `map_*`
-    - `map_lgl` for logical values
-    - `map_dbl` for doubles
-    - `map_int` for integers
-    - `map_chr` for text
+- `lapply()` -> `map()`
+- `sapply()` -> `map_*()`
+    - `map_lgl()` for logical values
+    - `map_dbl()` for doubles
+    - `map_int()` for integers
+    - `map_chr()` for text
 
-In addition there variants of all `map*` functions take two inputs (`map2_*`) and many inputs (`pmap*`).
+In addition there variants of all `map*()` functions take two inputs (`map2_*()`) and many inputs (`pmap_*()`).
 
 ------
 
@@ -318,7 +318,7 @@ map2_dbl(a, b, ~ .x + .y)
 
 
 
-## Nest and unnest
+# Nest and unnest
 
 An example data set
 
@@ -393,21 +393,8 @@ amt_fisher %>% mutate(wk = lubridate::week(t_)) %>%
 
 # Take-home messages
 
-1. Available data structures can be used to deal with multiple animal. 
-2. Lists are just other "containers" to hold some data structures. 
+1. Available data structures can be used to deal with multiple animals. 
+2. Lists are just other "containers" that contain data (structures). 
 3. List columns are a great way to organize complex data structures.
 
 
-# Key resources/publications
-
-\footnotesize
-
-## Movement ecology 
-
-- Bunnefeld, N., Börger, L., van Moorter, B., Rolandsen, C. M., Dettki, H., Solberg, E. J., & Ericsson, G. (2011). A model‐driven approach to quantify migration patterns: individual, regional and yearly differences. Journal of Animal Ecology, 80(2), 466-476.
-- Bjorneraas et al. 2010: Screening Global Positioning System Location Data for Errors Using Animal Movement Characteristics. https://doi.org/10.1111/j.1937-2817.2010.tb01258.x
-- Joo, R., Boone, M. E., Clay, T. A., Patrick, S. C., Clusella‐Trullas, S., & Basille, M. (2020). Navigating through the R packages for movement. Journal of Animal Ecology, 89(1), 248-267.
-
-## R resource
-- Lovlace, R. et al. (2019). Geocomputation with R: https://geocompr.robinlovelace.net/. 
-- Wickham, H. R for data science: https://r4ds.had.co.nz/

@@ -351,3 +351,42 @@ hr_isopleths(akdes) %>%
                     values = c(1.75, 0.75)) +
   scale_fill_viridis_c(name = "aKDE UD", option = "A") +
   theme_bw()
+
+# Overlap ----
+# In this last section, we'll demonstrate the use of hr_overlap().
+
+# Recall the other individuals in our simulated data:
+# Plot locations
+ggplot(dat, aes(x = x_, y = y_, color = ID, group = ID)) +
+  geom_point() +
+  coord_equal() +
+  xlab(NULL) +
+  ylab(NULL) +
+  theme_bw()
+
+# We can see that A01 and A04 have some overlap.
+
+# Let's fit MCPs with the same isopleths as we did for A01 above.
+a04_mcps <- dat %>% 
+  filter(ID == "A04") %>% 
+  hr_mcp(levels = c(0.50, 0.75, 0.95, 1.00))
+
+# Now we can measure their overlap
+hr_overlap(mcps, a04_mcps)
+
+# Custom plot
+bind_rows(hr_isopleths(mcps) %>% 
+            mutate(ID = "A01"),
+      hr_isopleths(a04_mcps) %>% 
+        mutate(ID = "A04")) %>% 
+  ggplot() +
+  geom_sf(aes(color = ID), fill = NA) +
+  facet_wrap(~ level)
+
+# Sure enough, we can see no overlap of the 50% MCPs, and increasing overlap
+# after that.
+
+# Measure area of overlap
+sf::st_intersection(hr_isopleths(mcps)[1,], 
+                    hr_isopleths(a04_mcps)[1,]) %>% 
+  sf::st_area()

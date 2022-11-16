@@ -290,7 +290,7 @@ Three possible ways to deal with multiple instances in R:
 \begin{enumerate}
 \tightlist
 \item
-  Copy and paste your code and make slight adaptations (\textbf{don't do
+  Copy and paste your code and make slight adaptions (\textbf{don't do
   this}).
 \item
   Use a \texttt{for}-loop
@@ -530,7 +530,7 @@ variable, which I called \texttt{res} here.
 \begin{itemize}
 \tightlist
 \item
-  \texttt{tibbles} are \emph{modern} data frames.
+  \texttt{tibbles} are \emph{modern} \texttt{data.frame}s.
 \item
   A tibble can have list columns.
 \item
@@ -629,7 +629,7 @@ For matrices:
 \begin{itemize}
 \tightlist
 \item
-  \texttt{apply} (we wont cover this here in more detail)
+  \texttt{apply()} (we wont cover this here in more detail)
 \end{itemize}
 
 For vectors and lists
@@ -637,15 +637,15 @@ For vectors and lists
 \begin{itemize}
 \tightlist
 \item
-  \texttt{lapply}
+  \texttt{lapply()}
 \item
-  \texttt{sapply}
+  \texttt{sapply()}
 \end{itemize}
 \end{block}
 \end{frame}
 
 \begin{frame}[fragile]
-\begin{block}{\texttt{lapply}}
+\begin{block}{\texttt{lapply()}}
 \protect\hypertarget{lapply}{}
 To apply a function to each element of a list (or a vector) and the
 result should be a list, then \texttt{lapply} can be used.
@@ -674,7 +674,7 @@ We could achieve the same with a a \texttt{for}-loop:
 \begin{Highlighting}[]
 \NormalTok{res }\OtherTok{\textless{}{-}} \FunctionTok{list}\NormalTok{()}
 \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\DecValTok{2}\NormalTok{) \{}
-\NormalTok{  l[[i]] }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(l[[i]])}
+\NormalTok{  res[[i]] }\OtherTok{\textless{}{-}} \FunctionTok{length}\NormalTok{(l[[i]])}
 \NormalTok{\}}
 \end{Highlighting}
 \end{Shaded}
@@ -691,7 +691,7 @@ simplify the data structure of the result).
 \end{Shaded}
 
 \begin{verbatim}
-[1] 1 1
+[1] 3 1
 \end{verbatim}
 \end{frame}
 
@@ -706,7 +706,7 @@ explicitly work with the object the function is applied to.
 \end{Shaded}
 
 \begin{verbatim}
-[1] 1 1
+[1] 3 1
 \end{verbatim}
 
 Since \texttt{length} only uses one argument (here \texttt{x}), we do
@@ -720,25 +720,25 @@ The \texttt{purrr} package provides a more type-stable way to
 \begin{itemize}
 \tightlist
 \item
-  \texttt{lapply} -\textgreater{} \texttt{map}
+  \texttt{lapply()} -\textgreater{} \texttt{map()}
 \item
-  \texttt{sapply} -\textgreater{} \texttt{map\_*}
+  \texttt{sapply()} -\textgreater{} \texttt{map\_*()}
 
   \begin{itemize}
   \tightlist
   \item
-    \texttt{map\_lgl} for logical values
+    \texttt{map\_lgl()} for logical values
   \item
-    \texttt{map\_dbl} for doubles
+    \texttt{map\_dbl()} for doubles
   \item
-    \texttt{map\_int} for integers
+    \texttt{map\_int()} for integers
   \item
-    \texttt{map\_chr} for text
+    \texttt{map\_chr()} for text
   \end{itemize}
 \end{itemize}
 
-In addition there variants of all \texttt{map*} functions take two
-inputs (\texttt{map2\_*}) and many inputs (\texttt{pmap*}).
+In addition there variants of all \texttt{map*()} functions take two
+inputs (\texttt{map2\_*()}) and many inputs (\texttt{pmap\_*()}).
 \end{frame}
 
 \begin{frame}[fragile]
@@ -751,7 +751,7 @@ inputs (\texttt{map2\_*}) and many inputs (\texttt{pmap*}).
 
 \begin{verbatim}
 [[1]]
-[1] 1
+[1] 3
 
 [[2]]
 [1] 1
@@ -766,7 +766,7 @@ Better
 \end{Shaded}
 
 \begin{verbatim}
-[1] 1 1
+[1] 3 1
 \end{verbatim}
 \end{frame}
 
@@ -783,7 +783,7 @@ default with \texttt{.} or \texttt{.x} together with
 \end{Shaded}
 
 \begin{verbatim}
-[1] 1 1
+[1] 3 1
 \end{verbatim}
 
 \begin{Shaded}
@@ -793,7 +793,7 @@ default with \texttt{.} or \texttt{.x} together with
 \end{Shaded}
 
 \begin{verbatim}
-[1] 1 1
+[1] 3 1
 \end{verbatim}
 
 \begin{Shaded}
@@ -803,7 +803,7 @@ default with \texttt{.} or \texttt{.x} together with
 \end{Shaded}
 
 \begin{verbatim}
-[1] 1 1
+[1] 3 1
 \end{verbatim}
 \end{frame}
 
@@ -822,8 +822,9 @@ An example for \texttt{map2\_*}:
 \begin{verbatim}
 [1] 5 5 5 5
 \end{verbatim}
+\end{frame}
 
-\begin{block}{Nest and unnest}
+\begin{frame}[fragile]{Nest and unnest}
 \protect\hypertarget{nest-and-unnest}{}
 An example data set
 
@@ -837,7 +838,6 @@ An example data set
 \NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
-\end{block}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -1000,49 +1000,12 @@ instances.
 \begin{enumerate}
 \tightlist
 \item
-  Available data structures can be used to deal with multiple animal.
+  Available data structures can be used to deal with multiple animals.
 \item
-  Lists are just other ``containers'' to hold some data structures.
+  Lists are just other ``containers'' that contain data (structures).
 \item
   List columns are a great way to organize complex data structures.
 \end{enumerate}
-\end{frame}
-
-\begin{frame}{Key resources/publications}
-\protect\hypertarget{key-resourcespublications}{}
-\footnotesize
-
-\begin{block}{Movement ecology}
-\protect\hypertarget{movement-ecology}{}
-\begin{itemize}
-\tightlist
-\item
-  Bunnefeld, N., Börger, L., van Moorter, B., Rolandsen, C. M., Dettki,
-  H., Solberg, E. J., \& Ericsson, G. (2011). A model‐driven approach to
-  quantify migration patterns: individual, regional and yearly
-  differences. Journal of Animal Ecology, 80(2), 466-476.
-\item
-  Bjorneraas et al.~2010: Screening Global Positioning System Location
-  Data for Errors Using Animal Movement Characteristics.
-  \url{https://doi.org/10.1111/j.1937-2817.2010.tb01258.x}
-\item
-  Joo, R., Boone, M. E., Clay, T. A., Patrick, S. C., Clusella‐Trullas,
-  S., \& Basille, M. (2020). Navigating through the R packages for
-  movement. Journal of Animal Ecology, 89(1), 248-267.
-\end{itemize}
-\end{block}
-
-\begin{block}{R resource}
-\protect\hypertarget{r-resource}{}
-\begin{itemize}
-\tightlist
-\item
-  Lovlace, R. et al.~(2019). Geocomputation with R:
-  \url{https://geocompr.robinlovelace.net/}.
-\item
-  Wickham, H. R for data science: \url{https://r4ds.had.co.nz/}
-\end{itemize}
-\end{block}
 \end{frame}
 
 
