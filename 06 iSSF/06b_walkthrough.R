@@ -67,6 +67,8 @@ points(dat1)
 
 raster::plot(forest)
 points(dat1)
+head(dat1)
+
 
 # Preparing data for SSF ----
 # ... Creating steps ----
@@ -79,6 +81,7 @@ dat1 %>% steps() # steps_by_burst()
 
 # Adding random steps. 
 tmp <- dat1 %>% steps() %>% random_steps() 
+tmp
 
 tmp %>% print(n = 15)
 
@@ -226,7 +229,6 @@ s2 <- data.frame(
 # `"df"` contains a `data.frame` which contains the log-RSS calculation and
 # could easily be used to make a plot when considering relative selection
 # strength across a range of environmental characteristics.
-
 lr1 <- log_rss(m1, x1 = s1, x2 = s2)
 
 lr1$df
@@ -271,7 +273,6 @@ ggplot(lr1$df, aes(elevation_x1, exp(log_rss))) +
 # We can use the standard errors from our fitted model to estimate these
 # confidence intervals based on a normal approximation to the sampling
 # distribution of $\hat{\beta}$.
-
 lr1_ci_se <- log_rss(m1, s1, s2, ci = "se", ci_level = 0.95)
 head(lr1_ci_se$df)
 

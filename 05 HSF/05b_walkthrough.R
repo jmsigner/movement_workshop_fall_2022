@@ -333,7 +333,7 @@ beta_fig +
 
 # For example, we might be interested in the tradeoff between foraging
 # and predation risk. We could create a scenario with high forage and low
-# predator density vs. a habitat with low forage and high predor density.
+# predator density vs. a habitat with low forage and high predator density.
 # How many times more points do we expect if:
 #   - x1: 
 #       - forage: 750 g/m^2
