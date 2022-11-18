@@ -47,7 +47,7 @@ We can distinguish between two different UDs:
 1. Transient UD (TUD) is the expected space-use distribution over a short time period and is thus sensitive to the initial conditions (e.g., the starting point).
 2. Steady state UD (SSUD) is the long-term (asymptotically infinite) expectation of the space-use distribution across the landscape.
 
-**Think-pair-share:** Can we use a HSF/RSF to predict a possible path of the animal.
+**Think-pair-share:** Can we use a HSF/RSF to predict a possible path of an animal.
 
 
 # Predicting space use from HSF

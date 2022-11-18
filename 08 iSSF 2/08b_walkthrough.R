@@ -1,7 +1,7 @@
 #######################################################X
 #----Analysis of Animal Movement Data in R Workshop----X
 #----------------Module 08 -- iSSF pt 2----------------X
-#----------------Last updated 2022-11-16---------------X
+#----------------Last updated 2022-11-17---------------X
 #-------------------Code Walkthrough-------------------X
 #######################################################X
 
@@ -266,11 +266,14 @@ jitter <- function(x, y, min = -25, max = 25) {
   return(res)
 }
 
-# This code will take several minutes to run. I have tried to write it
-# for maximum ease of understanding, not computational speed. Rather
-# than actually running it for all rows of the data.frame, I'll demonstrate
-# how it works, but then we'll load in the results that I already generated
-# previously.
+# I have tried to write this code for ease of understanding, 
+# not computational speed. We don't recommend that you try to adapt
+# this code to simulate from an iSSA. Instead, follow the procedure
+# Johannes introduced in module 07.
+
+# Note also that this only works fairly well because we are using
+# a small raster and a simple habitat selection model. This code
+# will not generalize well to any possible iSSA formulation.
 
 # We already have the first step. We need to simulate the rest.
 set.seed(20221117)
@@ -370,7 +373,7 @@ for (i in 2:nrow(dat)) {
   dat$abs_angle[i] = (pi/2 - atan2(dy, dx)) %% (2*pi)
   
   # If you want to check
-  dat[i, ]
+  # dat[i, ]
   
 }
 
