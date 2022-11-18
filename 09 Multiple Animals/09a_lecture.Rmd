@@ -186,7 +186,7 @@ For RSF use random intercept **and** random slope(s)\footnotemark[4].
 
 - The conditional logistic regression is a special case of the multinomial model.
 - The multinomial model is likelihood-equivalent to the Poisson model.
-- Thus we can rewrite to conditional logistic regression as a Poisson regression.
+- Thus we can rewrite the conditional logistic regression as a Poisson regression.
 
 ---- 
 
@@ -238,7 +238,7 @@ $$
 
 # Software to fit these models
 
-- HSF/SSF:
+- HSF/RSF:
     - Any standard software package that can fit GLMMs is suitable. 
 - iSSF:
     - Frequentist: In R the package `glmmTMB` can be use, because it allows to fix the variance of random effects. 

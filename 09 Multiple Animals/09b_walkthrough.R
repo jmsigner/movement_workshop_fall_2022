@@ -28,6 +28,7 @@ source("fun/sim_ssf.R")
 data(goats, package = "ResourceSelection")
 
 head(goats)
+table(goats$STATUS)
 
 # We fit three models:
 # 1. Ignore individuals
@@ -44,8 +45,8 @@ m2 <- glmmTMB(STATUS ~ ELEVATION + SLOPE + (1 | ID),
 
 # This is a random slope and intercept model
 m3 <- glmmTMB(STATUS ~ ELEVATION + SLOPE + 
-                (0 + SLOPE | ID) +
-                (0 + ELEVATION | ID),
+                (0 + ELEVATION | ID) +
+                (0 + SLOPE | ID),
               data = goats, family = binomial())
 
 # Lets compare the models
@@ -133,7 +134,7 @@ dat1
 # Finally, lets plot all animals together
 dat1 %>% ggplot(aes(x_, y_, col = factor(id))) + geom_point() + coord_equal()
 
-# Now that we have the data, we can fit an HSF/RSF and a SFF
+# Now that we have the data, we can fit an HSF/RSF and a SSF
 
 # HSF/RSF ----
 # ... Prepare data ----
@@ -146,7 +147,6 @@ dat.hsf
 
 # ... Global model ----
 m1 <- glm(case_ ~ forest + elevation, data = dat.hsf, weights = weight, family = binomial())
-summary(m1)
 
 # ... Individual model ----
 # First nest the data by id to run individual models
@@ -237,7 +237,7 @@ m2 <- glmmTMB:::fitTMB(m2)
 coef(m1)
 fixef(m2)
 
-# So are the SE
+# So are the vars
 diag(vcov(m1$model))
 diag(vcov(m2)[[1]])
 
@@ -252,6 +252,7 @@ m2 <- dat.issf %>% nest(dat = -id) %>%
     tidy(m$model, conf.int = TRUE)
     })) %>% 
   select(id, mod) %>% unnest(cols = mod)
+m2
 m2 %>% 
   ggplot(aes(x = term, y = estimate)) + geom_point(alpha = 0.4) +
   stat_summary(col = "red")

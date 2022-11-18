@@ -1,7 +1,7 @@
 ---
 title: "Validation Exercise"
 author: "Brian J. Smith"
-date: "28 January 2022"
+date: "18 November 2022"
 output: 
   html_document:
     theme: default
@@ -29,10 +29,7 @@ Pick a model you fit in a previous exercise, such as an HSF from exercise 5 or a
   * The first model can be the one you already fit in the previous exercise.
   * Leave out a variable you think should be important from the second model.
   
-4. Calculate one or more validation metrics for both of your models.
-
-  * Calculating concordance using `survival::concordance()` should give approximately the same results as calculating AUC for an HSF, but it can also be used for an iSSF.
-  * UHC plots are a great choice for either model, but they're much trickier to implement.
+4. Create UHC plots for both models. Can you see where the UHC plots are telling you that your model is misspecified?
 
 <br>
 <hr>

@@ -103,7 +103,7 @@ plot(hab)
 issf_dat <- stp %>% 
   # Keep the defaults for generating available steps (gamma and von Mises distrs)
   # Increase the number of random steps
-  random_steps(n_control = 20) %>% 
+  random_steps(n_control = 50) %>% 
   # Attach habitat variables
   extract_covariates(hab) %>% 
   # Add temporal covariates
@@ -278,8 +278,8 @@ fig_dat <- bind_rows("Summer Day" = rss_summer_day$df,
                      "Other Night" = rss_other_night$df,
                      .id = "season_time") %>% 
   # Split "season_time" into two columns
-  mutate(season = word(season_time, 1, 1),
-         time = word(season_time, 2, 2)) %>% 
+  mutate(season = stringr::word(season_time, 1, 1),
+         time = stringr::word(season_time, 2, 2)) %>% 
   # Convert log-RSS to RSS
   mutate(rss = exp(log_rss),
          rss_lwr = exp(lwr),

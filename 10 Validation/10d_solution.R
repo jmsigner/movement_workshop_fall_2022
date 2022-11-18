@@ -55,7 +55,15 @@ train <- mod_dat %>%
   filter(step_id_ %in% step_df$stratum[step_df$train])
 
 test <- mod_dat %>% 
-  filter(step_id_ %in% step_df$stratum[!step_df$train])
+  filter(step_id_ %in% step_df$stratum[!step_df$train]) 
+  
+# Drop the strata with NA for turn angle
+NA_strata <- test %>% 
+  filter(is.na(ta_)) %>% 
+  pull(step_id_)
+
+test <- test %>% 
+  filter(!step_id_ %in% NA_strata)
 
 nrow(train)/nrow(mod_dat)
 nrow(test)/nrow(mod_dat)
@@ -64,7 +72,8 @@ nrow(test)/nrow(mod_dat)
 m1 <- train %>% 
   fit_issf(case_ ~ 
              # Habitat selection main effects
-             elevation + I(elevation^2) + trees + dist_to_road +
+             elevation + I(elevation^2) + 
+             trees + I(trees^2) + dist_to_road +
              # Movement main effects
              sl_ + log_sl_ + cos_ta_ +
              # Don't forget the strata
@@ -78,7 +87,8 @@ summary(m1)
 m2 <- train %>% 
   fit_issf(case_ ~ 
              # Habitat selection main effects
-             elevation + I(elevation^2) + dist_to_road +
+             # (removed elevation^2 and trees + trees^2)
+             elevation + dist_to_road +
              # Movement main effects
              sl_ + log_sl_ + cos_ta_ +
              # Don't forget the strata
@@ -88,7 +98,7 @@ m2 <- train %>%
 
 summary(m2)
 
-# Calculate metrics ----
+# Evaulate model ----
 
 # ... concordance ----
 # Concordance is already in the summary
@@ -96,167 +106,18 @@ summary(m2)
 summary(m1)$concordance
 summary(m2)$concordance
 
+# Overall, fairly low
+
 # ... UHC plots ----
 
-# ... Step 1. Summarize distribution of covariates ----
+uhc1 <- prep_uhc(m1, 
+                 test_dat = dplyr::select(test, -burst_), 
+                 n_samp = 500) # n = 500 for speed, but should use more
+uhc2 <- prep_uhc(m2, 
+                 test_dat = dplyr::select(test, -burst_),
+                 n_samp = 500) # n = 500 for speed, but should use more
 
-# Plot them all at once with ggplot
-test %>% 
-  pivot_longer(elevation:dist_to_road) %>% 
-  ggplot(aes(x = value, color = case_)) +
-  facet_wrap(~ name, scales = "free") +
-  geom_density() +
-  theme_bw()
+# Plot
+plot(uhc1)
 
-# ... Step 2. Fit a model to the training data ----
-
-# We already did this, but now we also need the betas from our model and 
-# the variance-covariance matrix
-m1_betas <- coef(m1)
-m1_vcov <- vcov(m1$model)
-
-m2_betas <- coef(m2)
-m2_vcov <- vcov(m2$model)
-
-# ... Step 3. Create predicted distribution using fitted model ----
-
-# We are going to create the predicted distribution by repeating the
-# substeps many times. Let's try it with 500 iterations (you probably
-# want more for your own data).
-
-M <- 500
-
-# Initialize blank lists
-dens_elevation_m1 <- list()
-dens_trees_m1 <- list()
-dens_dist_to_road_m1 <- list()
-
-for (i in 1:M) {
-  # Report status
-  cat("\rIteration", i, "of", M, "       ")
-  # ... ... a. draw random values for the betas ----
-  
-  # We are going to draw new betas from a multivariate normal distribution.
-  # Base R doesn't have a random number generator for the multivariate normal,
-  # but the MASS package does.
-  samp_beta <- MASS::mvrnorm(n = 1, mu = m1_betas, Sigma = m1_vcov)
-  
-  # ... ... b. select points from test data ----
-  
-  # Now we sample from the test points with probability proportional
-  # to the exponential habitat selection function.
-  
-  # Difference for iSSF from HSF is that we stratify random sampling
-  # by stratum and select one observation per stratum.
-  samp_test <- test %>% 
-    # Calculate w(x), i.e., the exponential HSF
-    mutate(w = exp(samp_beta[1] * elevation +
-                     samp_beta[2] * elevation^2 +
-                     samp_beta[3] * trees +
-                     samp_beta[4] * dist_to_road)) %>% 
-    # Grouping seems to be failing on this object; clearing classes
-    as.data.frame() %>% 
-    group_by(step_id_) %>% 
-    slice_sample(n = 1, weight_by = w)
-  
-  # ... ... c. summarize covariates at these locations ----
-  dens_elevation_m1[[i]] <- density(samp_test$elevation)
-  dens_trees_m1[[i]] <- density(samp_test$trees)
-  dens_dist_to_road_m1[[i]] <- density(samp_test$dist_to_road)
-}
-
-# Same for m2
-# Initialize blank lists
-dens_trees_m2 <- list()
-dens_elevation_m2 <- list()
-dens_dist_to_road_m2 <- list()
-
-for (i in 1:M) {
-  # Report status
-  cat("\rIteration", i, "of", M, "       ")
-  # ... ... a. draw random values for the betas ----
-  
-  # We are going to draw new betas from a multivariate normal distribution.
-  # Base R doesn't have a random number generator for the multivariate normal,
-  # but the MASS package does.
-  samp_beta <- MASS::mvrnorm(n = 1, mu = m2_betas, Sigma = m2_vcov)
-  
-  # ... ... b. select points from test data ----
-  
-  # Now we sample from the test points with probability proportional
-  # to the exponential habitat selection function.
-  
-  # Difference for iSSF from HSF is that we stratify random sampling
-  # by stratum and select one observation per stratum.
-  samp_test <- test %>% 
-    # Calculate w(x), i.e., the exponential HSF
-    mutate(w = exp(samp_beta[1] * elevation +
-                     samp_beta[2] * elevation^2 +
-                     samp_beta[3] * dist_to_road)) %>% 
-    # Grouping seems to be failing on this object; clearing classes
-    as.data.frame() %>% 
-    group_by(step_id_) %>% 
-    slice_sample(n = 1, weight_by = w)
-  
-  # ... ... c. summarize covariates at these locations ----
-  dens_trees_m2[[i]] <- density(samp_test$trees)
-  dens_elevation_m2[[i]] <- density(samp_test$elevation)
-  dens_dist_to_road_m2[[i]] <- density(samp_test$dist_to_road)
-}
-
-# ... Step 4. Compare observed and predicted distributions ----
-
-# Now we compare our observed and predicted distributions. 
-
-# Elevation -- same in both models
-plot(dens_elevation_m1[[1]], col = "gray70", 
-     ylim = c(0, 0.0025), main = "Elevation -- Correct Model")
-for (i in 2:length(dens_elevation_m1)) {
-  lines(dens_elevation_m1[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$elevation[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$elevation[!test$case_]), col = "red", lty = 2)
-
-plot(dens_elevation_m2[[1]], col = "gray70", 
-     ylim = c(0, 0.0025), main = "Elevation -- Incorrect Model")
-for (i in 2:length(dens_elevation_m2)) {
-  lines(dens_elevation_m2[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$elevation[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$elevation[!test$case_]), col = "red", lty = 2)
-
-# Now trees -- the missing variable in second model
-plot(dens_trees_m1[[1]], col = "gray70", 
-     ylim = c(0, 0.03), main = "Trees -- Correct Model")
-for (i in 2:length(dens_trees_m1)) {
-  lines(dens_trees_m1[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$trees[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$trees[!test$case_]), col = "red", lty = 2)
-
-plot(dens_trees_m2[[1]], col = "gray70", 
-     ylim = c(0, 0.03), main = "Trees -- Incorrect Model")
-for (i in 2:length(dens_trees_m2)) {
-  lines(dens_trees_m2[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$trees[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$trees[!test$case_]), col = "red", lty = 2)
-
-# Not extremely obvious, but the left-hand ascending arm is right
-# on the edge of the available values.
+plot(uhc2)

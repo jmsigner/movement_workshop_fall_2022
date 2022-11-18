@@ -1,7 +1,7 @@
 #######################################################X
 #----Analysis of Animal Movement Data in R Workshop----X
 #----------------Module 10 -- Validation---------------X
-#----------------Last updated 2021-01-28---------------X
+#----------------Last updated 2022-11-18---------------X
 #-------------------Code Walkthrough-------------------X
 #######################################################X
 
@@ -293,180 +293,56 @@ cor(test_bins$w, test_bins$obs_per_cell, method = "spearman")
 
 # ... UHC plots ----
 
-# Package `uhcplots` cannot be (easily) installed due to a missing
-# dependency (`SDMTools`). You can install an archived version of this
-# package to resolve the issue, but we can simply recreate the UHC plots
-# ourselves.
+# We have implemented UHC plots in 'amt'. There is also an accompanying
+# vignette demonstrating how they work with both HSFs and iSSFs.
 
-# Fieberg et al. broke the approach down into 4 steps.
-#   1. Summarize used and available distributions in test data
-#   2. Fit candidate model (we already did)
-#   3. Bootstrap
-#   4. Compare observed and predicted
+# You can do the bootstrap resampling using 'prep_uhc()'.
+?prep_uhc
 
-# ... Step 1. Summarize distribution of covariates ----
+# And there is a default 'plot()' method for making the actual plots.
+?plot.uhc_data
 
+# Let's see how it works with our data.
+# Model 1 (correct)
+uhc1 <- prep_uhc(m1, 
+                 test_dat = select(test, -weight), 
+                 n_samp = 500)
 
-# But what we really want is one distribution for the used points, and 
-# one distribution for the available points (for the *test* dataset)
-# for each variable.
-test_forage_used <- density(test$forage[test$case_])
-test_forage_avail <- density(test$forage[!test$case_])
+# Model 2 (incorrect)
+uhc2 <- prep_uhc(m2,
+                 test_dat = select(test, -weight), 
+                 n_samp = 500)
 
-plot(test_forage_used,
-     main = "Forage Density")
-lines(test_forage_avail,
-      col = "red", lty = 2)
+# Plot
+plot(uhc1)
+plot(uhc2)
 
-# We can also do this with ggplot
-ggplot(test, aes(x = forage, color = case_)) +
-  geom_density() +
+# We can also convert the object from 'prep_uhc()' to a data.frame
+# if we want to make our own plots.
+
+# Note (on 18 Nov 2022): there was a bug in 'amt::as.data.frame.uhc_data()'
+# It has been fixed on the amt GitHub repository.
+# If you don't have the latest version (as of 18 Nov), source this
+# script instead:
+source("10 validation/fix_asdataframe.R")
+
+df2 <- as.data.frame(uhc2)
+
+df2 %>% 
+  mutate(dist_sort = factor(dist, levels = c("S", "U", "A"))) %>%
+  ggplot(aes(x = x, y = y, color = dist_sort, linetype = dist_sort)) +
+  facet_wrap(~ var, scales = "free") +
+  geom_line() +
+  scale_color_manual(name = "Distribution",
+                     breaks = c("S", "U", "A"),
+                     labels = c("Sampled", "Used", "Avail"),
+                     values = c("gray70", "black", "red")) +
+  scale_linetype_manual(name = "Distribution",
+                        breaks = c("S", "U", "A"),
+                        labels = c("Sampled", "Used", "Avail"),
+                        values = c("solid", "solid", "dashed")
+  ) +
+  xlab("Forage (g/m2)") +
+  ylab("Density") +
   theme_bw()
-
-# We can do them all at once with ggplot, too.
-test %>% 
-  pivot_longer(forage:temp) %>% 
-  ggplot(aes(x = value, color = case_)) +
-  facet_wrap(~ name, scales = "free") +
-  geom_density() +
-  theme_bw()
-
-# ... Step 2. Fit a model to the training data ----
-
-# We already did this, but now we also need the betas from our model and 
-# the variance-covariance matrix
-m1_betas <- coef(m1)
-m1_vcov <- vcov(m1)
-
-m2_betas <- coef(m2)
-m2_vcov <- vcov(m2)
-
-# ... Step 3. Create predicted distribution using fitted model ----
-
-# We are going to create the predicted distribution by repeating the
-# substeps many times. Let's try it with 500 iterations (you probably
-# want more for your own data).
-
-M <- 500
-
-# Initialize blank lists
-dens_forage_m1 <- list()
-dens_temp_m1 <- list()
-
-for (i in 1:M) {
-  # Report status
-  cat("\rIteration", i, "of", M, "       ")
-  # ... ... a. draw random values for the betas ----
-  
-  # We are going to draw new betas from a multivariate normal distribution.
-  # Base R doesn't have a random number generator for the multivariate normal,
-  # but the MASS package does.
-  samp_beta <- MASS::mvrnorm(n = 1, mu = m1_betas, Sigma = m1_vcov)
-  
-  # ... ... b. select points from test data ----
-  
-  # Now we sample from the test points with probability proportional
-  # to the exponential habitat selection function.
-  samp_test <- test %>% 
-    # Calculate w(x), i.e., the exponential HSF
-    mutate(w = exp(samp_beta[2] * forage +
-                     samp_beta[3] * temp +
-                     samp_beta[4] * temp^2)) %>% 
-    # Select rows in proportion to w(x)
-    # How many? One for each used point.
-    slice_sample(n = sum(test$case_), weight_by = w)
-  
-  # ... ... c. summarize covariates at these locations ----
-  dens_forage_m1[[i]] <- density(samp_test$forage)
-  dens_temp_m1[[i]] <- density(samp_test$temp)
-}
-
-# Same for m2
-# Initialize blank lists
-dens_forage_m2 <- list()
-dens_temp_m2 <- list()
-
-for (i in 1:M) {
-  # Report status
-  cat("\rIteration", i, "of", M, "       ")
-  # ... ... a. draw random values for the betas ----
-  
-  # We are going to draw new betas from a multivariate normal distribution.
-  # Base R doesn't have a random number generator for the multivariate normal,
-  # but the MASS package does.
-  samp_beta <- MASS::mvrnorm(n = 1, mu = m2_betas, Sigma = m2_vcov)
-  
-  # ... ... b. select points from test data ----
-  
-  # Now we sample from the test points with probability proportional
-  # to the exponential habitat selection function.
-  samp_test <- test %>% 
-    # Calculate w(x), i.e., the exponential HSF
-    mutate(w = exp(samp_beta[2] * forage +
-                     samp_beta[3] * temp)) %>% 
-    # Select rows in proportion to w(x)
-    # How many? One for each used point.
-    slice_sample(n = sum(test$case_), weight_by = w)
-  
-  # ... ... c. summarize covariates at these locations ----
-  dens_forage_m2[[i]] <- density(samp_test$forage)
-  dens_temp_m2[[i]] <- density(samp_test$temp)
-}
-
-# ... Step 4. Compare observed and predicted distributions ----
-
-# Now we compare our observed and predicted distributions. 
-
-# The easiest way to plot all of the available densities is with a for() loop.
-# We'll plot the first one, and then use a loop to plot numbers 2 -- 500.
-
-plot(dens_forage_m1[[1]], col = "gray70", 
-     ylim = c(0, 0.003), main = "Forage -- Correct Model")
-for (i in 2:length(dens_forage_m1)) {
-  lines(dens_forage_m1[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$forage[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$forage[!test$case_]), col = "red", lty = 2)
-
-plot(dens_forage_m2[[1]], col = "gray70", 
-     ylim = c(0, 0.003), main = "Forage -- Incorrect Model")
-for (i in 2:length(dens_forage_m2)) {
-  lines(dens_forage_m2[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$forage[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$forage[!test$case_]), col = "red", lty = 2)
-
-# Now temperature -- the variable that is misspecified
-plot(dens_temp_m1[[1]], col = "gray70", 
-     ylim = c(0, 0.25), main = "Temperature -- Correct Model")
-for (i in 2:length(dens_temp_m1)) {
-  lines(dens_temp_m1[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$temp[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$temp[!test$case_]), col = "red", lty = 2)
-
-plot(dens_temp_m2[[1]], col = "gray70", 
-     ylim = c(0, 0.25), main = "Temperature -- Incorrect Model")
-for (i in 2:length(dens_temp_m2)) {
-  lines(dens_temp_m2[[i]], col = "gray70") 
-}
-
-# Now add the actual used distribution we estimated in step 1
-lines(density(test$temp[test$case_]), col = "black")
-
-# Now add the available
-lines(density(test$temp[!test$case_]), col = "red", lty = 2)
-
 
